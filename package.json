@@ -1,40 +1,41 @@
 {
   "name": "lox-highlighter",
-  "displayName": "lox-highlighter",
-  "description": "Syntax highlighter for Lox",
+  "displayName": "Lox Highlighter",
+  "description": "Semantic highlighting for Lox",
   "version": "0.0.1",
+  "publisher": "salluzziluca",
   "engines": {
-    "vscode": "^1.110.0"
+    "vscode": "^1.90.0"
   },
   "categories": [
-    "Other"
+    "Programming Languages"
   ],
-  "activationEvents": [],
+  "activationEvents": [
+    "onLanguage:semanticLanguage"
+  ],
   "main": "./out/extension.js",
   "contributes": {
-    "commands": [
+    "languages": [
       {
-        "command": "lox-highlighter.helloWorld",
-        "title": "Hello World"
+        "id": "semanticLanguage",
+        "aliases": [
+          "Semantic Language"
+        ],
+        "extensions": [
+          ".semanticLanguage",
+          ".lox"
+        ]
       }
     ]
   },
   "scripts": {
-    "vscode:prepublish": "npm run compile",
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
-    "pretest": "npm run compile && npm run lint",
-    "lint": "eslint src",
-    "test": "vscode-test"
+    "vscode:prepublish": "npm run compile"
   },
   "devDependencies": {
-    "@types/vscode": "^1.110.0",
-    "@types/mocha": "^10.0.10",
-    "@types/node": "22.x",
-    "typescript-eslint": "^8.56.1",
-    "eslint": "^9.39.3",
-    "typescript": "^5.9.3",
-    "@vscode/test-cli": "^0.0.12",
-    "@vscode/test-electron": "^2.5.2"
+    "@types/node": "^20.12.12",
+    "@types/vscode": "^1.90.0",
+    "typescript": "^5.4.0"
   }
 }
