@@ -1,4 +1,4 @@
-# Semantic tokens sample
+# Semantic tokens samples
 
 This is an extension sample showing a very simple semantic tokens provider. This semantic tokens provider always returns all the tokens in a file.
 
