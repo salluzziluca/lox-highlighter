@@ -1,9 +1,10 @@
 import * as vscode from 'vscode';
-
+import { Scanner } from './scanner';
+import { Token, TokenType } from './tokens';
 const tokenTypes = new Map<string, number>();
 const tokenModifiers = new Map<string, number>();
 
-const legend = (function() {
+const legend = (function () {
 	const tokenTypesLegend = [
 		'comment', 'string', 'keyword', 'number', 'regexp', 'operator', 'namespace',
 		'type', 'struct', 'class', 'interface', 'enum', 'typeParameter', 'function',
@@ -21,7 +22,7 @@ const legend = (function() {
 })();
 
 export function activate(context: vscode.ExtensionContext) {
-	context.subscriptions.push(vscode.languages.registerDocumentSemanticTokensProvider({ language: 'semanticLanguage' }, new DocumentSemanticTokensProvider(), legend));
+	context.subscriptions.push(vscode.languages.registerDocumentSemanticTokensProvider({ language: 'lox' }, new DocumentSemanticTokensProvider(), legend));
 }
 
 interface IParsedToken {
@@ -64,34 +65,12 @@ class DocumentSemanticTokensProvider implements vscode.DocumentSemanticTokensPro
 	}
 
 	private _parseText(text: string): IParsedToken[] {
-		const r: IParsedToken[] = [];
-		const lines = text.split(/\r\n|\r|\n/);
-		for (let i = 0; i < lines.length; i++) {
-			const line = lines[i];
-			let currentOffset = 0;
-			do {
-				const openOffset = line.indexOf('[', currentOffset);
-				if (openOffset === -1) {
-					break;
-				}
-				const closeOffset = line.indexOf(']', openOffset);
-				if (closeOffset === -1) {
-					break;
-				}
-				const tokenData = this._parseTextToken(line.substring(openOffset + 1, closeOffset));
-				r.push({
-					line: i,
-					startCharacter: openOffset + 1,
-					length: closeOffset - openOffset - 1,
-					tokenType: tokenData.tokenType,
-					tokenModifiers: tokenData.tokenModifiers
-				});
-				currentOffset = closeOffset;
-				// eslint-disable-next-line no-constant-condition
-			} while (true);
-		}
-		return r;
+		const scanner = new Scanner(text);
+		return scanner.scan()
+			.filter(t => t.tokenType !== TokenType.EOF)
+			.map(toIParsedToken);
 	}
+
 
 	private _parseTextToken(text: string): { tokenType: string; tokenModifiers: string[]; } {
 		const parts = text.split('.');
@@ -99,5 +78,39 @@ class DocumentSemanticTokensProvider implements vscode.DocumentSemanticTokensPro
 			tokenType: parts[0],
 			tokenModifiers: parts.slice(1)
 		};
+	}
+
+}
+
+
+function toIParsedToken(token: Token): IParsedToken {
+	return {
+		line: token.line - 1,
+		startCharacter: token.column - 1,
+		length: token.lexeme.length,
+		tokenType: tokenTypeToVSCode(token.tokenType),
+		tokenModifiers: []
+	};
+}
+
+function tokenTypeToVSCode(type: TokenType): string {
+	switch (type) {
+		case TokenType.IF:
+		case TokenType.ELSE:
+		case TokenType.WHILE:
+		case TokenType.FOR:
+		case TokenType.FUN:
+		case TokenType.VAR:
+		case TokenType.RETURN:
+		case TokenType.AND:
+		case TokenType.OR:
+		case TokenType.TRUE:
+		case TokenType.FALSE:
+		case TokenType.NIL:
+		case TokenType.PRINT: return 'keyword';
+		case TokenType.NUMBER: return 'number';
+		case TokenType.STRING: return 'string';
+		case TokenType.IDENTIFIER: return 'variable';
+		default: return 'operator';
 	}
 }

@@ -11,15 +11,15 @@
     "Programming Languages"
   ],
   "activationEvents": [
-    "onLanguage:semanticLanguage"
+    "onLanguage:lox"
   ],
   "main": "./out/extension.js",
   "contributes": {
     "languages": [
       {
-        "id": "semanticLanguage",
+        "id": "lox",
         "aliases": [
-          "Semantic Language"
+          "lox"
         ],
         "extensions": [
           ".semanticLanguage",

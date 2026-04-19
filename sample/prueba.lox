@@ -1,0 +1,93 @@
+// ============================================
+// prueba completa de lox
+// ============================================
+
+// variables y tipos básicos
+var entero = 42;
+var decimal = 3.14;
+var texto = "hola mundo";
+var nada = nil;
+var verdadero = true;
+var falso = false;
+
+// operadores aritméticos
+var suma = 1 + 2;
+var resta = 10 - 3;
+var producto = 4 * 5;
+var division = 10 / 2;
+var modulo = 10 % 3;
+var potencia = 2 ** 8;
+
+// operadores de comparación
+var igual = 1 == 1;
+var distinto = 1 != 2;
+var mayor = 5 > 3;
+var menor = 3 < 5;
+var mayorIgual = 5 >= 5;
+var menorIgual = 3 <= 4;
+
+// operadores lógicos
+var y = true and false;
+var o = true or false;
+var negacion = !true;
+
+// if / else
+if (entero > 10) {
+    print("es grande");
+} else {
+    print("es chico");
+}
+
+// while
+var contador = 0;
+while (contador < 5) {
+    print(contador);
+    contador = contador + 1;
+}
+
+// for
+for (var i = 0; i < 3; i = i + 1) {
+    print(i);
+}
+
+// funciones
+fun sumar(a, b) {
+    return a + b;
+}
+
+fun factorial(n) {
+    if (n <= 1) {
+        return 1;
+    }
+    return n * factorial(n - 1);
+}
+
+fun esPar(n) {
+    return n % 2 == 0;
+}
+
+// llamadas
+var resultado = sumar(3, 4);
+var fact = factorial(5);
+var par = esPar(4);
+
+// strings
+var saludo = "hola " + "mundo";
+var pregunta = "cuanto es 2+2?";
+
+// expresión ternaria (si lo tienen implementado)
+var max = (entero > decimal) ? entero : decimal;
+
+// anidamiento
+fun fibonacci(n) {
+    if (n <= 0) {
+        return 0;
+    }
+    if (n == 1) {
+        return 1;
+    }
+    return fibonacci(n - 1) + fibonacci(n - 2);
+}
+
+var fib = fibonacci(10);
+print(fib);
