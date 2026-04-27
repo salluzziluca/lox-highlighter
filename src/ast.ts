@@ -35,6 +35,11 @@ export interface Assign {
 	name: Token;
 	value: Expr;
 }
+export interface Call {
+	kind: 'Call';
+	callee: Expr;
+	args: Expr[];
+}
 
 export type Expr =
 	| Literal
@@ -42,7 +47,8 @@ export type Expr =
 	| Binary
 	| Grouping
 	| Variable
-	| Assign;
+	| Assign
+	| Call;
 
 // ─── Statements ────────────────────────────────────────────────────────────────
 

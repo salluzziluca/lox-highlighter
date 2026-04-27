@@ -1,7 +1,7 @@
 import * as assert from 'assert';
 import { Parser } from '../parser';
 import { Scanner } from '../scanner';
-import { Literal, Variable, Grouping, Assign } from '../ast';
+import { Literal, Variable, Grouping, Assign, FunDecl, ReturnStmt, Block, WhileStmt, IfStmt, VarDecl, PrintStmt, ExpressionStmt, Stmt } from '../ast';
 
 function parse(source: string) {
 	const tokens = new Scanner(source).scan();
@@ -356,6 +356,308 @@ suite('Parser - assignment', () => {
 	test('sin asignación cae a equality', () => {
 		const node = expression('1 + 2') as Binary;
 		assert.strictEqual(node.kind, 'Binary');
+	});
+
+});
+
+function parseProgram(source: string): Stmt[] {
+	const tokens = new Scanner(source).scan();
+	return new Parser(tokens).parse();
+}
+
+suite('Parser - statements', () => {
+
+	// ─── ExpressionStmt ────────────────────────────────────────────────────────
+
+	suite('ExpressionStmt', () => {
+		test('expresión simple', () => {
+			const stmts = parseProgram('1 + 2;');
+			assert.strictEqual(stmts[0].kind, 'ExpressionStmt');
+			assert.strictEqual((stmts[0] as ExpressionStmt).expression.kind, 'Binary');
+		});
+
+		test('sin punto y coma lanza error', () => {
+			assert.throws(() => parseProgram('1 + 2'));
+		});
+	});
+
+	// ─── PrintStmt ─────────────────────────────────────────────────────────────
+
+	suite('PrintStmt', () => {
+		test('print literal', () => {
+			const stmts = parseProgram('print 42;');
+			assert.strictEqual(stmts[0].kind, 'PrintStmt');
+			assert.strictEqual(((stmts[0] as PrintStmt).expression as Literal).value, 42);
+		});
+
+		test('print string', () => {
+			const stmts = parseProgram('print "hola";');
+			assert.strictEqual(stmts[0].kind, 'PrintStmt');
+		});
+
+		test('print expresión', () => {
+			const stmts = parseProgram('print 1 + 2;');
+			assert.strictEqual((stmts[0] as PrintStmt).expression.kind, 'Binary');
+		});
+
+		test('sin punto y coma lanza error', () => {
+			assert.throws(() => parseProgram('print 42'));
+		});
+	});
+
+	// ─── VarDecl ───────────────────────────────────────────────────────────────
+
+	suite('VarDecl', () => {
+		test('declaración con inicializador', () => {
+			const stmts = parseProgram('var x = 1;');
+			const node = stmts[0] as VarDecl;
+			assert.strictEqual(node.kind, 'VarDecl');
+			assert.strictEqual(node.name.lexeme, 'x');
+			assert.strictEqual((node.initializer as Literal).value, 1);
+		});
+
+		test('declaración sin inicializador', () => {
+			const stmts = parseProgram('var x;');
+			const node = stmts[0] as VarDecl;
+			assert.strictEqual(node.initializer, null);
+		});
+
+		test('declaración con expresión', () => {
+			const stmts = parseProgram('var x = 1 + 2;');
+			const node = stmts[0] as VarDecl;
+			assert.strictEqual(node.initializer!.kind, 'Binary');
+		});
+
+		test('sin nombre lanza error', () => {
+			assert.throws(() => parseProgram('var = 1;'));
+		});
+
+		test('sin punto y coma lanza error', () => {
+			assert.throws(() => parseProgram('var x = 1'));
+		});
+	});
+
+	// ─── Block ─────────────────────────────────────────────────────────────────
+
+	suite('Block', () => {
+		test('bloque vacío', () => {
+			const stmts = parseProgram('{}');
+			const node = stmts[0] as Block;
+			assert.strictEqual(node.kind, 'Block');
+			assert.strictEqual(node.statements.length, 0);
+		});
+
+		test('bloque con statements', () => {
+			const stmts = parseProgram('{ var x = 1; print x; }');
+			const node = stmts[0] as Block;
+			assert.strictEqual(node.statements.length, 2);
+		});
+
+		test('bloque sin cerrar lanza error', () => {
+			assert.throws(() => parseProgram('{ var x = 1;'));
+		});
+	});
+
+	// ─── IfStmt ────────────────────────────────────────────────────────────────
+
+	suite('IfStmt', () => {
+		test('if sin else', () => {
+			const stmts = parseProgram('if (x) { print x; }');
+			const node = stmts[0] as IfStmt;
+			assert.strictEqual(node.kind, 'IfStmt');
+			assert.strictEqual(node.elseBranch, null);
+		});
+
+		test('if con else', () => {
+			const stmts = parseProgram('if (x) { print x; } else { print 0; }');
+			const node = stmts[0] as IfStmt;
+			assert.notStrictEqual(node.elseBranch, null);
+		});
+
+		test('condición es una expresión', () => {
+			const stmts = parseProgram('if (x > 1) { print x; }');
+			const node = stmts[0] as IfStmt;
+			assert.strictEqual(node.condition.kind, 'Binary');
+		});
+
+		test('sin paréntesis lanza error', () => {
+			assert.throws(() => parseProgram('if x { print x; }'));
+		});
+	});
+
+	// ─── WhileStmt ─────────────────────────────────────────────────────────────
+
+	suite('WhileStmt', () => {
+		test('while básico', () => {
+			const stmts = parseProgram('while (x < 3) { print x; }');
+			const node = stmts[0] as WhileStmt;
+			assert.strictEqual(node.kind, 'WhileStmt');
+			assert.strictEqual(node.condition.kind, 'Binary');
+		});
+
+		test('sin paréntesis lanza error', () => {
+			assert.throws(() => parseProgram('while x < 3 { print x; }'));
+		});
+	});
+
+	// ─── ForStmt (desazucarado a while) ────────────────────────────────────────
+
+	suite('ForStmt', () => {
+		test('for se desazucara a Block con WhileStmt', () => {
+			const stmts = parseProgram('for (var i = 0; i < 3; i = i + 1) { print i; }');
+			const node = stmts[0] as Block;
+			assert.strictEqual(node.kind, 'Block');
+			assert.strictEqual(node.statements[0].kind, 'VarDecl');
+			assert.strictEqual(node.statements[1].kind, 'WhileStmt');
+		});
+
+		test('for sin inicializador', () => {
+			const stmts = parseProgram('for (; i < 3; i = i + 1) { print i; }');
+			assert.strictEqual(stmts[0].kind, 'WhileStmt');
+		});
+
+		test('for sin condición usa true', () => {
+			const stmts = parseProgram('for (var i = 0;; i = i + 1) { print i; }');
+			const block = stmts[0] as Block;
+			const whileNode = block.statements[1] as WhileStmt;
+			assert.strictEqual((whileNode.condition as Literal).value, true);
+		});
+
+		test('for sin incremento', () => {
+			const stmts = parseProgram('for (var i = 0; i < 3;) { print i; }');
+			const block = stmts[0] as Block;
+			assert.strictEqual(block.statements[1].kind, 'WhileStmt');
+		});
+	});
+
+	// ─── FunDecl ───────────────────────────────────────────────────────────────
+
+	suite('FunDecl', () => {
+		test('función sin parámetros', () => {
+			const stmts = parseProgram('fun saludar() { print "hola"; }');
+			const node = stmts[0] as FunDecl;
+			assert.strictEqual(node.kind, 'FunDecl');
+			assert.strictEqual(node.name.lexeme, 'saludar');
+			assert.strictEqual(node.params.length, 0);
+		});
+
+		test('función con parámetros', () => {
+			const stmts = parseProgram('fun sumar(a, b) { return a + b; }');
+			const node = stmts[0] as FunDecl;
+			assert.strictEqual(node.params.length, 2);
+			assert.strictEqual(node.params[0].lexeme, 'a');
+			assert.strictEqual(node.params[1].lexeme, 'b');
+		});
+
+		test('función con body', () => {
+			const stmts = parseProgram('fun f() { var x = 1; return x; }');
+			const node = stmts[0] as FunDecl;
+			assert.strictEqual(node.body.length, 2);
+		});
+
+		test('sin nombre lanza error', () => {
+			assert.throws(() => parseProgram('fun () { }'));
+		});
+	});
+
+	// ─── ReturnStmt ────────────────────────────────────────────────────────────
+
+	suite('ReturnStmt', () => {
+		test('return con valor', () => {
+			const stmts = parseProgram('fun f() { return 1; }');
+			const fun = stmts[0] as FunDecl;
+			const ret = fun.body[0] as ReturnStmt;
+			assert.strictEqual(ret.kind, 'ReturnStmt');
+			assert.strictEqual((ret.value as Literal).value, 1);
+		});
+
+		test('return sin valor', () => {
+			const stmts = parseProgram('fun f() { return; }');
+			const fun = stmts[0] as FunDecl;
+			const ret = fun.body[0] as ReturnStmt;
+			assert.strictEqual(ret.value, null);
+		});
+
+		test('return con expresión', () => {
+			const stmts = parseProgram('fun f() { return 1 + 2; }');
+			const fun = stmts[0] as FunDecl;
+			const ret = fun.body[0] as ReturnStmt;
+			assert.strictEqual(ret.value!.kind, 'Binary');
+		});
+	});
+
+	// ─── programa completo ─────────────────────────────────────────────────────
+
+	suite('programa completo', () => {
+		test('múltiples statements', () => {
+			const stmts = parseProgram('var x = 1;\nvar y = 2;\nprint x + y;');
+			assert.strictEqual(stmts.length, 3);
+		});
+
+		test('función recursiva', () => {
+			const stmts = parseProgram(`
+                fun factorial(n) {
+                    if (n <= 1) { return 1; }
+                    return n * factorial(n - 1);
+                }
+            `);
+			assert.strictEqual(stmts[0].kind, 'FunDecl');
+		});
+
+		test('for anidado en función', () => {
+			const stmts = parseProgram(`
+                fun contar() {
+                    for (var i = 0; i < 3; i = i + 1) {
+                        print i;
+                    }
+                }
+            `);
+			assert.strictEqual(stmts[0].kind, 'FunDecl');
+		});
+	});
+
+});
+
+import { Call } from '../ast';
+
+suite('Parser - call', () => {
+
+	test('llamada sin argumentos', () => {
+		const node = expression('f()') as Call;
+		assert.strictEqual(node.kind, 'Call');
+		assert.strictEqual((node.callee as Variable).name.lexeme, 'f');
+		assert.strictEqual(node.args.length, 0);
+	});
+
+	test('llamada con un argumento', () => {
+		const node = expression('f(1)') as Call;
+		assert.strictEqual(node.args.length, 1);
+		assert.strictEqual((node.args[0] as Literal).value, 1);
+	});
+
+	test('llamada con múltiples argumentos', () => {
+		const node = expression('f(1, 2, 3)') as Call;
+		assert.strictEqual(node.args.length, 3);
+	});
+
+	test('llamada con expresión como argumento', () => {
+		const node = expression('f(1 + 2)') as Call;
+		assert.strictEqual(node.args[0].kind, 'Binary');
+	});
+
+	test('llamada encadenada', () => {
+		const node = expression('f()()') as Call;
+		assert.strictEqual(node.kind, 'Call');
+		assert.strictEqual(node.callee.kind, 'Call');
+	});
+
+	test('llamada recursiva como argumento', () => {
+		const node = expression('f(f(1))') as Call;
+		assert.strictEqual(node.args[0].kind, 'Call');
+	});
+
+	test('sin cerrar paréntesis lanza error', () => {
+		assert.throws(() => expression('f(1'));
 	});
 
 });

@@ -58,11 +58,6 @@ export class Parser {
 		throw new ParseError(this._peek(), message);
 	}
 
-
-	private _statement(): Stmt {
-		throw new ParseError(this._peek(), 'Statements aún no implementados');
-	}
-
 	private _primary(): Expr {
 		if (this._match(TokenType.FALSE)) return { kind: 'Literal', value: false };
 		if (this._match(TokenType.TRUE)) return { kind: 'Literal', value: true };
@@ -88,11 +83,11 @@ export class Parser {
 	private _unary(): Expr {
 		if (this._match(TokenType.BANG, TokenType.MINUS)) {
 			const operator = this._previous();
-			const right = this._unary(); // recursivo para soportar !!x, --x
+			const right = this._unary();
 			return { kind: 'Unary', operator, right };
 		}
 
-		return this._primary();
+		return this._call();
 	}
 
 	private _factor(): Expr {
@@ -158,6 +153,159 @@ export class Parser {
 			}
 
 			throw new ParseError(this._previous(), 'Destino de asignación inválido');
+		}
+
+		return expr;
+	}
+
+	private _statement(): Stmt {
+		if (this._match(TokenType.VAR)) return this._varDecl();
+		if (this._match(TokenType.PRINT)) return this._printStmt();
+		if (this._match(TokenType.IF)) return this._ifStmt();
+		if (this._match(TokenType.WHILE)) return this._whileStmt();
+		if (this._match(TokenType.FOR)) return this._forStmt();
+		if (this._match(TokenType.FUN)) return this._funDecl();
+		if (this._match(TokenType.RETURN)) return this._returnStmt();
+		if (this._match(TokenType.LEFT_BRACE)) return this._block();
+		return this._expressionStmt();
+	}
+
+
+	private _expressionStmt(): Stmt {
+		const expression = this._expression();
+		this._consume(TokenType.SEMICOLON, "Se esperaba ';' después de la expresión");
+		return { kind: 'ExpressionStmt', expression };
+	}
+
+
+	private _printStmt(): Stmt {
+		const expression = this._expression();
+		this._consume(TokenType.SEMICOLON, "Se esperaba ';' después del valor");
+		return { kind: 'PrintStmt', expression };
+	}
+
+
+	private _varDecl(): Stmt {
+		const name = this._consume(TokenType.IDENTIFIER, "Se esperaba un nombre de variable");
+		const initializer = this._match(TokenType.EQUAL) ? this._expression() : null;
+		this._consume(TokenType.SEMICOLON, "Se esperaba ';' después de la declaración");
+		return { kind: 'VarDecl', name, initializer };
+	}
+
+	private _block(): Stmt {
+		const statements: Stmt[] = [];
+		while (!this._check(TokenType.RIGHT_BRACE) && !this._isAtEnd()) {
+			statements.push(this._statement());
+		}
+		this._consume(TokenType.RIGHT_BRACE, "Se esperaba '}' al final del bloque");
+		return { kind: 'Block', statements };
+	}
+
+
+	private _ifStmt(): Stmt {
+		this._consume(TokenType.LEFT_PAREN, "Se esperaba '(' después de 'if'");
+		const condition = this._expression();
+		this._consume(TokenType.RIGHT_PAREN, "Se esperaba ')' después de la condición");
+
+		const thenBranch = this._statement();
+		const elseBranch = this._match(TokenType.ELSE) ? this._statement() : null;
+
+		return { kind: 'IfStmt', condition, thenBranch, elseBranch };
+	}
+
+	private _whileStmt(): Stmt {
+		this._consume(TokenType.LEFT_PAREN, "Se esperaba '(' después de 'while'");
+		const condition = this._expression();
+		this._consume(TokenType.RIGHT_PAREN, "Se esperaba ')' después de la condición");
+		const body = this._statement();
+		return { kind: 'WhileStmt', condition, body };
+	}
+
+
+	private _forStmt(): Stmt {
+		this._consume(TokenType.LEFT_PAREN, "Se esperaba '(' después de 'for'");
+
+		let initializer: Stmt | null = null;
+		if (this._match(TokenType.SEMICOLON)) {
+			initializer = null;
+		} else if (this._match(TokenType.VAR)) {
+			initializer = this._varDecl();
+		} else {
+			initializer = this._expressionStmt();
+		}
+
+		const condition: Expr = this._check(TokenType.SEMICOLON)
+			? { kind: 'Literal', value: true }
+			: this._expression();
+		this._consume(TokenType.SEMICOLON, "Se esperaba ';' después de la condición del for");
+
+		const increment: Expr | null = this._check(TokenType.RIGHT_PAREN)
+			? null
+			: this._expression();
+		this._consume(TokenType.RIGHT_PAREN, "Se esperaba ')' después del incremento");
+
+		let body = this._statement();
+
+		if (increment !== null) {
+			body = {
+				kind: 'Block',
+				statements: [body, { kind: 'ExpressionStmt', expression: increment }]
+			};
+		}
+
+		const whileLoop: Stmt = { kind: 'WhileStmt', condition, body };
+
+		if (initializer !== null) {
+			return { kind: 'Block', statements: [initializer, whileLoop] };
+		}
+
+		return whileLoop;
+	}
+
+	private _funDecl(): Stmt {
+		const name = this._consume(TokenType.IDENTIFIER, "Se esperaba un nombre de función");
+		this._consume(TokenType.LEFT_PAREN, "Se esperaba '(' después del nombre de la función");
+
+		const params: Token[] = [];
+		if (!this._check(TokenType.RIGHT_PAREN)) {
+			do {
+				params.push(this._consume(TokenType.IDENTIFIER, "Se esperaba un nombre de parámetro"));
+			} while (this._match(TokenType.COMMA));
+		}
+
+		this._consume(TokenType.RIGHT_PAREN, "Se esperaba ')' después de los parámetros");
+		this._consume(TokenType.LEFT_BRACE, "Se esperaba '{' antes del cuerpo de la función");
+
+		const body: Stmt[] = [];
+		while (!this._check(TokenType.RIGHT_BRACE) && !this._isAtEnd()) {
+			body.push(this._statement());
+		}
+		this._consume(TokenType.RIGHT_BRACE, "Se esperaba '}' al final del cuerpo");
+
+		return { kind: 'FunDecl', name, params, body };
+	}
+
+	private _returnStmt(): Stmt {
+		const keyword = this._previous();
+		const value = this._check(TokenType.SEMICOLON) ? null : this._expression();
+		this._consume(TokenType.SEMICOLON, "Se esperaba ';' después del return");
+		return { kind: 'ReturnStmt', keyword, value };
+	}
+
+	private _call(): Expr {
+		let expr = this._primary();
+
+		while (this._match(TokenType.LEFT_PAREN)) {
+			const args: Expr[] = [];
+
+			if (!this._check(TokenType.RIGHT_PAREN)) {
+				do {
+					args.push(this._expression());
+				} while (this._match(TokenType.COMMA));
+			}
+
+			this._consume(TokenType.RIGHT_PAREN, "Se esperaba ')' después de los argumentos");
+			expr = { kind: 'Call', callee: expr, args };
 		}
 
 		return expr;
