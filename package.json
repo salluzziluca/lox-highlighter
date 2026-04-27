@@ -3,7 +3,7 @@
   "displayName": "Lox Highlighter",
   "description": "Semantic highlighting for Lox",
   "version": "0.0.1",
-  "publisher": "cpiccin & salluzziluca",
+  "publisher": "cpiccin",
   "engines": {
     "vscode": "^1.90.0"
   },
@@ -22,7 +22,6 @@
           "lox"
         ],
         "extensions": [
-          ".semanticLanguage",
           ".lox"
         ]
       }
@@ -31,11 +30,14 @@
   "scripts": {
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
-    "vscode:prepublish": "npm run compile"
+    "vscode:prepublish": "npm run compile",
+    "test": "npm run compile && mocha --ui tdd out/test/scanner.test.js"
   },
   "devDependencies": {
+    "@types/mocha": "^10.0.10",
     "@types/node": "^20.12.12",
     "@types/vscode": "^1.90.0",
+    "mocha": "^10.0.0",
     "typescript": "^5.4.0"
   }
 }
