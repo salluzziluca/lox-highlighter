@@ -10,8 +10,6 @@ export class Parser {
 		this.tokens = tokens;
 	}
 
-	// ─── API pública ────────────────────────────────────────────────────────────
-
 	parse(): Stmt[] {
 		const statements: Stmt[] = [];
 		while (!this._isAtEnd()) {
@@ -19,9 +17,6 @@ export class Parser {
 		}
 		return statements;
 	}
-
-	// ─── Navegación ─────────────────────────────────────────────────────────────
-
 
 	private _peek(): Token {
 		return this.tokens[this.current];
@@ -63,7 +58,6 @@ export class Parser {
 		throw new ParseError(this._peek(), message);
 	}
 
-	// ─── Placeholder ────────────────────────────────────────────────────────────
 
 	private _statement(): Stmt {
 		throw new ParseError(this._peek(), 'Statements aún no implementados');
@@ -83,7 +77,7 @@ export class Parser {
 		}
 
 		if (this._match(TokenType.LEFT_PAREN)) {
-			const expression = this._primary(); // por ahora solo primarias adentro
+			const expression = this._expression();
 			this._consume(TokenType.RIGHT_PAREN, "Se esperaba ')' después de la expresión");
 			return { kind: 'Grouping', expression };
 		}
@@ -100,6 +94,75 @@ export class Parser {
 
 		return this._primary();
 	}
+
+	private _factor(): Expr {
+		let left = this._unary();
+
+		while (this._match(TokenType.STAR, TokenType.SLASH, TokenType.PERCENT, TokenType.STAR_STAR)) {
+			const operator = this._previous();
+			const right = this._unary();
+			left = { kind: 'Binary', left, operator, right };
+		}
+
+		return left;
+	}
+
+	private _term(): Expr {
+		let left = this._factor();
+
+		while (this._match(TokenType.PLUS, TokenType.MINUS)) {
+			const operator = this._previous();
+			const right = this._factor();
+			left = { kind: 'Binary', left, operator, right };
+		}
+
+		return left;
+	}
+
+	private _comparison(): Expr {
+		let left = this._term();
+
+		while (this._match(TokenType.GREATER, TokenType.GREATER_EQUAL, TokenType.LESS, TokenType.LESS_EQUAL)) {
+			const operator = this._previous();
+			const right = this._term();
+			left = { kind: 'Binary', left, operator, right };
+		}
+
+		return left;
+	}
+
+	private _equality(): Expr {
+		let left = this._comparison();
+
+		while (this._match(TokenType.EQUAL_EQUAL, TokenType.BANG_EQUAL)) {
+			const operator = this._previous();
+			const right = this._comparison();
+			left = { kind: 'Binary', left, operator, right };
+		}
+
+		return left;
+	}
+
+	private _expression(): Expr {
+		return this._assignment();
+	}
+
+	private _assignment(): Expr {
+		const expr = this._equality();
+
+		if (this._match(TokenType.EQUAL)) {
+			const value = this._assignment(); // recursivo para asociatividad derecha
+
+			if (expr.kind === 'Variable') {
+				return { kind: 'Assign', name: expr.name, value };
+			}
+
+			throw new ParseError(this._previous(), 'Destino de asignación inválido');
+		}
+
+		return expr;
+	}
+
 }
 
 export class ParseError extends Error {

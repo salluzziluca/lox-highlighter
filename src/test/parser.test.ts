@@ -1,7 +1,7 @@
 import * as assert from 'assert';
 import { Parser } from '../parser';
 import { Scanner } from '../scanner';
-import { Literal, Variable, Grouping } from '../ast';
+import { Literal, Variable, Grouping, Assign } from '../ast';
 
 function parse(source: string) {
 	const tokens = new Scanner(source).scan();
@@ -157,6 +157,205 @@ suite('Parser - unary', () => {
 		const node = unary('!x') as Unary;
 		assert.strictEqual(node.kind, 'Unary');
 		assert.strictEqual((node.right as Variable).name.lexeme, 'x');
+	});
+
+});
+
+// src/test/parser.test.ts — agregás estos suites al final
+
+import { Binary } from '../ast';
+
+function expression(source: string) {
+	return (parse(source) as any)['_expression']();
+}
+
+suite('Parser - binary', () => {
+
+	// ─── factor ────────────────────────────────────────────────────────────────
+
+	suite('factor', () => {
+		test('multiplicación', () => {
+			const node = expression('2 * 3') as Binary;
+			assert.strictEqual(node.kind, 'Binary');
+			assert.strictEqual(node.operator.lexeme, '*');
+			assert.strictEqual((node.left as Literal).value, 2);
+			assert.strictEqual((node.right as Literal).value, 3);
+		});
+
+		test('división', () => {
+			const node = expression('10 / 2') as Binary;
+			assert.strictEqual(node.operator.lexeme, '/');
+		});
+
+		test('módulo', () => {
+			const node = expression('10 % 3') as Binary;
+			assert.strictEqual(node.operator.lexeme, '%');
+		});
+
+		test('potencia', () => {
+			const node = expression('2 ** 8') as Binary;
+			assert.strictEqual(node.operator.lexeme, '**');
+		});
+
+		test('encadenado izquierda a derecha', () => {
+			const node = expression('2 * 3 * 4') as Binary;
+			assert.strictEqual(node.kind, 'Binary');
+			assert.strictEqual((node.left as Binary).kind, 'Binary');
+		});
+	});
+
+	// ─── term ──────────────────────────────────────────────────────────────────
+
+	suite('term', () => {
+		test('suma', () => {
+			const node = expression('1 + 2') as Binary;
+			assert.strictEqual(node.operator.lexeme, '+');
+		});
+
+		test('resta', () => {
+			const node = expression('5 - 3') as Binary;
+			assert.strictEqual(node.operator.lexeme, '-');
+		});
+
+		test('suma tiene menor precedencia que multiplicación', () => {
+			// 1 + 2 * 3 → Binary(1, +, Binary(2, *, 3))
+			const node = expression('1 + 2 * 3') as Binary;
+			assert.strictEqual(node.operator.lexeme, '+');
+			assert.strictEqual((node.right as Binary).operator.lexeme, '*');
+		});
+
+		test('resta tiene menor precedencia que división', () => {
+			const node = expression('6 - 10 / 2') as Binary;
+			assert.strictEqual(node.operator.lexeme, '-');
+			assert.strictEqual((node.right as Binary).operator.lexeme, '/');
+		});
+	});
+
+	// ─── comparison ────────────────────────────────────────────────────────────
+
+	suite('comparison', () => {
+		test('mayor', () => {
+			const node = expression('5 > 3') as Binary;
+			assert.strictEqual(node.operator.lexeme, '>');
+		});
+
+		test('menor', () => {
+			const node = expression('3 < 5') as Binary;
+			assert.strictEqual(node.operator.lexeme, '<');
+		});
+
+		test('mayor o igual', () => {
+			const node = expression('5 >= 5') as Binary;
+			assert.strictEqual(node.operator.lexeme, '>=');
+		});
+
+		test('menor o igual', () => {
+			const node = expression('3 <= 4') as Binary;
+			assert.strictEqual(node.operator.lexeme, '<=');
+		});
+
+		test('comparison tiene menor precedencia que term', () => {
+			// 1 + 2 > 3 → Binary(Binary(1, +, 2), >, 3)
+			const node = expression('1 + 2 > 3') as Binary;
+			assert.strictEqual(node.operator.lexeme, '>');
+			assert.strictEqual((node.left as Binary).operator.lexeme, '+');
+		});
+	});
+
+	// ─── equality ──────────────────────────────────────────────────────────────
+
+	suite('equality', () => {
+		test('igual', () => {
+			const node = expression('1 == 1') as Binary;
+			assert.strictEqual(node.operator.lexeme, '==');
+		});
+
+		test('distinto', () => {
+			const node = expression('1 != 2') as Binary;
+			assert.strictEqual(node.operator.lexeme, '!=');
+		});
+
+		test('equality tiene menor precedencia que comparison', () => {
+			// 1 < 2 == true → Binary(Binary(1, <, 2), ==, true)
+			const node = expression('1 < 2 == true') as Binary;
+			assert.strictEqual(node.operator.lexeme, '==');
+			assert.strictEqual((node.left as Binary).operator.lexeme, '<');
+		});
+	});
+
+	// ─── grouping con expresiones ───────────────────────────────────────────────
+
+	suite('grouping con expresiones', () => {
+		test('paréntesis fuerzan precedencia', () => {
+			// (1 + 2) * 3 → Binary(Grouping(Binary(1, +, 2)), *, 3)
+			const node = expression('(1 + 2) * 3') as Binary;
+			assert.strictEqual(node.operator.lexeme, '*');
+			assert.strictEqual(node.left.kind, 'Grouping');
+		});
+
+		test('expresión compleja', () => {
+			const node = expression('(1 + 2) * (3 - 4)') as Binary;
+			assert.strictEqual(node.operator.lexeme, '*');
+			assert.strictEqual(node.left.kind, 'Grouping');
+			assert.strictEqual(node.right.kind, 'Grouping');
+		});
+	});
+
+	// ─── combinaciones ─────────────────────────────────────────────────────────
+
+	suite('combinaciones', () => {
+		test('unario dentro de binario', () => {
+			const node = expression('-1 + 2') as Binary;
+			assert.strictEqual(node.operator.lexeme, '+');
+			assert.strictEqual(node.left.kind, 'Unary');
+		});
+
+		test('negación lógica dentro de equality', () => {
+			const node = expression('!true == false') as Binary;
+			assert.strictEqual(node.operator.lexeme, '==');
+			assert.strictEqual(node.left.kind, 'Unary');
+		});
+
+		test('expresión con identificadores', () => {
+			const node = expression('x + y') as Binary;
+			assert.strictEqual(node.operator.lexeme, '+');
+			assert.strictEqual(node.left.kind, 'Variable');
+			assert.strictEqual(node.right.kind, 'Variable');
+		});
+	});
+
+});
+
+suite('Parser - assignment', () => {
+
+	test('asignación simple', () => {
+		const node = expression('x = 1') as Assign;
+		assert.strictEqual(node.kind, 'Assign');
+		assert.strictEqual(node.name.lexeme, 'x');
+		assert.strictEqual((node.value as Literal).value, 1);
+	});
+
+	test('asociativo por la derecha', () => {
+		const node = expression('a = b = 1') as Assign;
+		assert.strictEqual(node.kind, 'Assign');
+		assert.strictEqual(node.name.lexeme, 'a');
+		assert.strictEqual(node.value.kind, 'Assign');
+		assert.strictEqual((node.value as Assign).name.lexeme, 'b');
+	});
+
+	test('asignación a no-variable lanza error', () => {
+		assert.throws(() => expression('1 = 2'));
+	});
+
+	test('asignación con expresión en el valor', () => {
+		const node = expression('x = 1 + 2') as Assign;
+		assert.strictEqual(node.kind, 'Assign');
+		assert.strictEqual(node.value.kind, 'Binary');
+	});
+
+	test('sin asignación cae a equality', () => {
+		const node = expression('1 + 2') as Binary;
+		assert.strictEqual(node.kind, 'Binary');
 	});
 
 });
