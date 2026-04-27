@@ -90,6 +90,16 @@ export class Parser {
 
 		throw new ParseError(this._peek(), 'Se esperaba una expresión');
 	}
+
+	private _unary(): Expr {
+		if (this._match(TokenType.BANG, TokenType.MINUS)) {
+			const operator = this._previous();
+			const right = this._unary(); // recursivo para soportar !!x, --x
+			return { kind: 'Unary', operator, right };
+		}
+
+		return this._primary();
+	}
 }
 
 export class ParseError extends Error {

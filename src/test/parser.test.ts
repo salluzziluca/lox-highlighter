@@ -112,3 +112,51 @@ suite('Parser - primary', () => {
 	});
 
 });
+
+import { Unary } from '../ast';
+
+function unary(source: string) {
+	return (parse(source) as any)['_unary']();
+}
+
+suite('Parser - unary', () => {
+
+	test('negación lógica', () => {
+		const node = unary('!true') as Unary;
+		assert.strictEqual(node.kind, 'Unary');
+		assert.strictEqual(node.operator.lexeme, '!');
+		assert.strictEqual((node.right as Literal).value, true);
+	});
+
+	test('negación numérica', () => {
+		const node = unary('-42') as Unary;
+		assert.strictEqual(node.kind, 'Unary');
+		assert.strictEqual(node.operator.lexeme, '-');
+		assert.strictEqual((node.right as Literal).value, 42);
+	});
+
+	test('doble negación lógica', () => {
+		const node = unary('!!true') as Unary;
+		assert.strictEqual(node.kind, 'Unary');
+		assert.strictEqual((node.right as Unary).kind, 'Unary');
+	});
+
+	test('doble negación numérica', () => {
+		const node = unary('--1') as Unary;
+		assert.strictEqual(node.kind, 'Unary');
+		assert.strictEqual((node.right as Unary).kind, 'Unary');
+	});
+
+	test('sin operador unario cae a primary', () => {
+		const node = unary('42') as Literal;
+		assert.strictEqual(node.kind, 'Literal');
+		assert.strictEqual(node.value, 42);
+	});
+
+	test('negación de identificador', () => {
+		const node = unary('!x') as Unary;
+		assert.strictEqual(node.kind, 'Unary');
+		assert.strictEqual((node.right as Variable).name.lexeme, 'x');
+	});
+
+});
