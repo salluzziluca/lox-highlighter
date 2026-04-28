@@ -1,93 +1,123 @@
 // ============================================
-// prueba completa de lox
+// prueba del parser — casos límite y anidamiento
 // ============================================
 
-// variables y tipos básicos
-var entero = 42;
-var decimal = 3.14;
-var texto = "hola mundo";
-var nada = nil;
-var verdadero = true;
-var falso = false;
+// precedencia de operadores
+var a = 1 + 2 * 3;         // debe ser 7, no 9
+var b = (1 + 2) * 3;       // debe ser 9
+var c = 2 ** 3 ** 2;       // potencia
+var d = !true == false;    // negación antes de comparación
+var e = -1 + -2;           // unarios encadenados
 
-// operadores aritméticos
-var suma = 1 + 2;
-var resta = 10 - 3;
-var producto = 4 * 5;
-var division = 10 / 2;
-var modulo = 10 % 3;
-var potencia = 2 ** 8;
+// comparaciones encadenadas
+var f = 1 < 2 == true;
+var g = 1 + 2 > 3 - 1;
 
-// operadores de comparación
-var igual = 1 == 1;
-var distinto = 1 != 2;
-var mayor = 5 > 3;
-var menor = 3 < 5;
-var mayorIgual = 5 >= 5;
-var menorIgual = 3 <= 4;
+// asignación encadenada
+var x = 1;
+var y = 1;
+x = y = 10;  // asociativo por la derecha
 
-// operadores lógicos
-var y = true and false;
-var o = true or false;
-var negacion = !true;
-
-// if / else
-if (entero > 10) {
-    print("es grande");
-} else {
-    print("es chico");
+// funciones anidadas
+fun externa(a, b) {
+    fun interna(c) {
+        return a + c;
+    }
+    return interna(b);
 }
 
-// while
+// recursión mutua
+fun esPar(n) {
+    if (n == 0) return true;
+    return esImpar(n - 1);
+}
+
+fun esImpar(n) {
+    if (n == 0) return false;
+    return esPar(n - 1);
+}
+
+// for desazucarado
+var suma = 0;
+for (var i = 1; i <= 10; i = i + 1) {
+    suma = suma + i;
+}
+
+// while con break simulado via variable
+var seguir = true;
 var contador = 0;
-while (contador < 5) {
-    print(contador);
+while (seguir) {
     contador = contador + 1;
+    if (contador >= 5) {
+        seguir = false;
+    }
 }
 
-// for
-for (var i = 0; i < 3; i = i + 1) {
-    print(i);
+// if else anidado
+fun clasificar(n) {
+    if (n < 0) {
+        return "negativo";
+    } else {
+        if (n == 0) {
+            return "cero";
+        } else {
+            return "positivo";
+        }
+    }
 }
 
-// funciones
+// llamadas encadenadas como argumentos
+fun identidad(x) {
+    return x;
+}
+
+var resultado = identidad(identidad(identidad(42)));
+
+// expresiones como argumentos
 fun sumar(a, b) {
     return a + b;
 }
 
-fun factorial(n) {
-    if (n <= 1) {
-        return 1;
-    }
-    return n * factorial(n - 1);
-}
+var r = sumar(1 + 2, 3 * 4);
+var s = sumar(sumar(1, 2), sumar(3, 4));
 
-fun esPar(n) {
-    return n % 2 == 0;
-}
-
-// llamadas
-var resultado = sumar(3, 4);
-var fact = factorial(5);
-var par = esPar(4);
+// operadores lógicos
+var t = true and false;
+var u = false or true;
+var v = !false and !false;
 
 // strings
-var saludo = "hola " + "mundo";
-var pregunta = "cuanto es 2+2?";
+var saludo = "hola" + " " + "mundo";
+var vacio = "";
 
-// expresión ternaria (si lo tienen implementado)
-var max = (entero > decimal) ? entero : decimal;
+// nil
+var nada = nil;
+var esNil = nada == nil;
 
-// anidamiento
-fun fibonacci(n) {
-    if (n <= 0) {
-        return 0;
+// fibonacci iterativo
+fun fibIter(n) {
+    var a = 0;
+    var b = 1;
+    for (var i = 0; i < n; i = i + 1) {
+        var temp = a + b;
+        a = b;
+        b = temp;
     }
-    if (n == 1) {
-        return 1;
-    }
-    return fibonacci(n - 1) + fibonacci(n - 2);
+    return a;
 }
 
-var fib = fibonacci(10);
-print(fib);
+// fibonacci recursivo
+fun fibRec(n) {
+    if (n <= 1) return n;
+    return fibRec(n - 1) + fibRec(n - 2);
+}
+
+print fibIter(10);
+print fibRec(10);
+print clasificar(-5);
+print clasificar(0);
+print clasificar(5);
+print esPar(4);
+print esImpar(3);
+print externa(1, 2);
+print resultado;

@@ -71,6 +71,7 @@ export class Scanner {
 					while (!this._isAtEnd() && this._peek() !== '\n') {
 						this._advance();
 					}
+					this._addToken(TokenType.COMMENT);
 				} else {
 					this._addToken(TokenType.SLASH);
 				}

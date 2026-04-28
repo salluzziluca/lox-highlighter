@@ -1,6 +1,8 @@
 import * as vscode from 'vscode';
 import { Scanner } from './scanner';
 import { Token, TokenType } from './tokens';
+import { Parser } from './parser';
+import { Resolver } from './resolver';
 const tokenTypes = new Map<string, number>();
 const tokenModifiers = new Map<string, number>();
 
@@ -65,10 +67,39 @@ class DocumentSemanticTokensProvider implements vscode.DocumentSemanticTokensPro
 	}
 
 	private _parseText(text: string): IParsedToken[] {
-		const scanner = new Scanner(text);
-		return scanner.scan()
+		const tokens = new Scanner(text).scan();
+
+		let semanticMap = new Map<string, string>();
+		try {
+			const stmts = new Parser(tokens).parse();
+			semanticMap = new Resolver().resolve(stmts);
+		} catch {
+			// si el código tiene errores de parseo, usamos solo el scanner
+			// pero aplicamos una heurística mínima para no perder color semántico:
+			// - `fun <identifier>` => function
+			// - `var <identifier>` => variable
+			for (let i = 0; i < tokens.length; i++) {
+				const token = tokens[i];
+
+				if (token.tokenType === TokenType.FUN) {
+					const next = tokens[i + 1];
+					if (next && next.tokenType === TokenType.IDENTIFIER) {
+						semanticMap.set(`${next.line}:${next.column}`, 'function');
+					}
+				}
+
+				if (token.tokenType === TokenType.VAR) {
+					const next = tokens[i + 1];
+					if (next && next.tokenType === TokenType.IDENTIFIER) {
+						semanticMap.set(`${next.line}:${next.column}`, 'variable');
+					}
+				}
+			}
+		}
+
+		return tokens
 			.filter(t => t.tokenType !== TokenType.EOF)
-			.map(toIParsedToken);
+			.map(t => toIParsedToken(t, semanticMap));
 	}
 
 
@@ -83,12 +114,13 @@ class DocumentSemanticTokensProvider implements vscode.DocumentSemanticTokensPro
 }
 
 
-function toIParsedToken(token: Token): IParsedToken {
+function toIParsedToken(token: Token, semanticMap: Map<string, string>): IParsedToken {
+	const semanticType = semanticMap.get(`${token.line}:${token.column}`);
 	return {
 		line: token.line - 1,
 		startCharacter: token.column - 1,
 		length: token.lexeme.length,
-		tokenType: tokenTypeToVSCode(token.tokenType),
+		tokenType: semanticType ?? tokenTypeToVSCode(token.tokenType),
 		tokenModifiers: []
 	};
 }
@@ -111,6 +143,7 @@ function tokenTypeToVSCode(type: TokenType): string {
 		case TokenType.NUMBER: return 'number';
 		case TokenType.STRING: return 'string';
 		case TokenType.IDENTIFIER: return 'variable';
+		case TokenType.COMMENT: return 'comment';
 		default: return 'operator';
 	}
 }

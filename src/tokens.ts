@@ -44,6 +44,7 @@ export enum TokenType {
 	TRUE,
 	VAR,
 	WHILE,
+	COMMENT,
 	// fin de archivo
 	EOF,
 }
