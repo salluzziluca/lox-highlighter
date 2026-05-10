@@ -1,0 +1,61 @@
+{
+  "name": "Lox Dark",
+  "type": "dark",
+  "colors": {
+    "editor.background": "#1e1e1e",
+    "editor.foreground": "#d4d4d4",
+    "editor.lineNumberColor": "#858585",
+    "editor.selectionBackground": "#264f78",
+    "editor.wordHighlightBackground": "#575757"
+  },
+  "tokenColors": [
+    {
+      "scope": "comment.line",
+      "settings": {
+        "foreground": "#6a9955"
+      }
+    },
+    {
+      "scope": "string.quoted.double",
+      "settings": {
+        "foreground": "#ce9178"
+      }
+    },
+    {
+      "scope": "constant.character.escape",
+      "settings": {
+        "foreground": "#d7ba7d"
+      }
+    },
+    {
+      "scope": "keyword.control",
+      "settings": {
+        "foreground": "#569cd6",
+        "fontStyle": "bold"
+      }
+    },
+    {
+      "scope": "keyword.declaration",
+      "settings": {
+        "foreground": "#569cd6",
+        "fontStyle": "bold"
+      }
+    },
+    {
+      "scope": "keyword.other",
+      "settings": {
+        "foreground": "#569cd6",
+        "fontStyle": "bold"
+      }
+    },
+    {
+      "scope": "constant.numeric",
+      "settings": {
+        "foreground": "#b5cea8"
+      }
+    }
+  ]
+}
+
+
+

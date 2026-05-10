@@ -1,0 +1,67 @@
+{
+  "name": "Lox Custom",
+  "type": "dark",
+  "colors": {
+    "editor.background": "#dad8be",
+    "editor.foreground": "#390040",
+    "editor.lineNumberColor": "#837f5d",
+    "editor.selectionBackground": "#730071",
+    "editor.wordHighlightBackground": "#c2c094",
+    "sideBar.background": "#c2c094",
+    "sideBar.foreground": "#390040",
+    "activityBar.background": "#dad8be",
+    "activityBar.foreground": "#730071",
+    "titleBar.activeBackground": "#c2c094",
+    "titleBar.activeForeground": "#390040",
+    "statusBar.background": "#730071",
+    "statusBar.foreground": "#dad8be"
+  },
+  "tokenColors": [
+    {
+      "scope": "comment.line",
+      "settings": {
+        "foreground": "#837F5D"
+      }
+    },
+    {
+      "scope": "string.quoted.double",
+      "settings": {
+        "foreground": "#730071"
+      }
+    },
+    {
+      "scope": "constant.character.escape",
+      "settings": {
+        "foreground": "#730071"
+      }
+    },
+    {
+      "scope": "keyword.control",
+      "settings": {
+        "foreground": "#390040",
+        "fontStyle": "bold"
+      }
+    },
+    {
+      "scope": "keyword.declaration",
+      "settings": {
+        "foreground": "#390040",
+        "fontStyle": "bold"
+      }
+    },
+    {
+      "scope": "keyword.other",
+      "settings": {
+        "foreground": "#390040",
+        "fontStyle": "bold"
+      }
+    },
+    {
+      "scope": "constant.numeric",
+      "settings": {
+        "foreground": "#730071"
+      }
+    }
+  ]
+}
+

@@ -23,7 +23,32 @@
         ],
         "extensions": [
           ".lox"
-        ]
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "lox",
+        "scopeName": "source.lox",
+        "path": "./syntaxes/lox.tmLanguage.xml"
+      }
+    ],
+    "themes": [
+      {
+        "label": "Lox Dark",
+        "uiTheme": "vs-dark",
+        "path": "./themes/lox-dark.json"
+      },
+      {
+        "label": "Lox Light",
+        "uiTheme": "vs",
+        "path": "./themes/lox-light.json"
+      },
+      {
+        "label": "Lox Custom",
+        "uiTheme": "vs-dark",
+        "path": "./themes/lox-custom-prueba.json"
       }
     ]
   },
@@ -34,10 +59,13 @@
     "test": "npm run compile && mocha --ui tdd 'out/test/**/*.test.js'"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@stylistic/eslint-plugin": "^5.10.0",
     "@types/mocha": "^10.0.10",
     "@types/node": "^20.12.12",
     "@types/vscode": "^1.90.0",
     "mocha": "^10.0.0",
-    "typescript": "^5.4.0"
+    "typescript": "^5.4.0",
+    "typescript-eslint": "^8.59.2"
   }
 }

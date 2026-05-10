@@ -1,0 +1,24 @@
+// ============================================
+// Archivo con errores para probar diagnostics
+// ============================================
+
+// Error 1: falta semicolon después de variable
+var x
+
+// Error 2: unterminated string
+var name = "John
+
+// Error 3: unclosed brace
+fun add(a, b) {
+  return a + b
+
+// Error 4: missing closing paren
+if (x > 5 {
+  print x;
+}
+
+// Error 5: invalid assignment
+3 = 5;
+
+// Error 6: unterminated comment
+/* Este es un comentario sin cerrar

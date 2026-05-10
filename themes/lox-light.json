@@ -1,0 +1,61 @@
+{
+  "name": "Lox Light",
+  "type": "light",
+  "colors": {
+    "editor.background": "#ffffff",
+    "editor.foreground": "#333333",
+    "editor.lineNumberColor": "#999999",
+    "editor.selectionBackground": "#add6ff",
+    "editor.wordHighlightBackground": "#e0e0e0"
+  },
+  "tokenColors": [
+    {
+      "scope": "comment.line",
+      "settings": {
+        "foreground": "#6a7e3f"
+      }
+    },
+    {
+      "scope": "string.quoted.double",
+      "settings": {
+        "foreground": "#a65628"
+      }
+    },
+    {
+      "scope": "constant.character.escape",
+      "settings": {
+        "foreground": "#a65628"
+      }
+    },
+    {
+      "scope": "keyword.control",
+      "settings": {
+        "foreground": "#0070c1",
+        "fontStyle": "bold"
+      }
+    },
+    {
+      "scope": "keyword.declaration",
+      "settings": {
+        "foreground": "#0070c1",
+        "fontStyle": "bold"
+      }
+    },
+    {
+      "scope": "keyword.other",
+      "settings": {
+        "foreground": "#0070c1",
+        "fontStyle": "bold"
+      }
+    },
+    {
+      "scope": "constant.numeric",
+      "settings": {
+        "foreground": "#098658"
+      }
+    }
+  ]
+}
+
+
+
