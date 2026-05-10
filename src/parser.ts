@@ -13,8 +13,13 @@ export class Parser {
 	parse(): Stmt[] {
 		const statements: Stmt[] = [];
 		while (!this._isAtEnd()) {
+
+			if (this._match(TokenType.COMMENT)) {
+				continue;
+			}
+
 			statements.push(this._statement());
-		}
+		}		
 		return statements;
 	}
 
@@ -55,6 +60,11 @@ export class Parser {
 
 	private _consume(type: TokenType, message: string): Token {
 		if (this._check(type)) return this._advance();
+
+		if (type === TokenType.SEMICOLON) {
+			throw new ParseError(this._previous(), message);
+		}
+
 		throw new ParseError(this._peek(), message);
 	}
 
@@ -195,6 +205,10 @@ export class Parser {
 	private _block(): Stmt {
 		const statements: Stmt[] = [];
 		while (!this._check(TokenType.RIGHT_BRACE) && !this._isAtEnd()) {
+			if (this._match(TokenType.COMMENT)) {
+				continue;
+			}
+
 			statements.push(this._statement());
 		}
 		this._consume(TokenType.RIGHT_BRACE, "Se esperaba '}' al final del bloque");
