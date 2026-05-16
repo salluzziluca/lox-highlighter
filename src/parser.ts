@@ -61,7 +61,11 @@ export class Parser {
 	private _consume(type: TokenType, message: string): Token {
 		if (this._check(type)) return this._advance();
 
-		if (type === TokenType.SEMICOLON) {
+		if (
+			type === TokenType.SEMICOLON ||
+			type === TokenType.RIGHT_PAREN ||
+			type === TokenType.RIGHT_BRACE
+		) {
 			throw new ParseError(this._previous(), message);
 		}
 
@@ -335,4 +339,3 @@ export class ParseError extends Error {
 		this.token = token;
 	}
 }
-

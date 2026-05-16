@@ -1,8 +1,9 @@
 import * as vscode from 'vscode';
 import { Scanner } from './scanner';
 import { Token, TokenType } from './tokens';
-import { Parser } from './parser';
-import { Resolver } from './resolver';
+import { Parser, ParseError } from './parser';
+import { Resolver as TokenResolver } from './resolver';
+import { SemanticResolver, ResolverDiagnostic } from './semantic-resolver';
 const tokenTypes = new Map<string, number>();
 const tokenModifiers = new Map<string, number>();
 
@@ -25,6 +26,54 @@ const legend = (function () {
 
 export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(vscode.languages.registerDocumentSemanticTokensProvider({ language: 'lox' }, new DocumentSemanticTokensProvider(), legend));
+
+	const diagnosticCollection =
+		vscode.languages.createDiagnosticCollection('lox');
+
+	context.subscriptions.push(diagnosticCollection);
+
+	const updateDiagnostics = (document: vscode.TextDocument) => {
+		if (document.languageId !== 'lox') {
+			return;
+		}
+
+		const diagnostics: vscode.Diagnostic[] = [];
+
+		try {
+			const tokens = new Scanner(document.getText()).scan();
+			const stmts = new Parser(tokens).parse();
+			const semanticErrors = new SemanticResolver().resolve(stmts);
+
+			for (const semanticError of semanticErrors) {
+				diagnostics.push(toDiagnostic(semanticError));
+			}
+		} catch (error) {
+			if (error instanceof ParseError) {
+				diagnostics.push(toDiagnostic({
+					token: error.token,
+					message: error.message
+				}));
+			}
+		}
+
+		diagnosticCollection.set(document.uri, diagnostics);
+	};
+
+	if (vscode.window.activeTextEditor) {
+		updateDiagnostics(vscode.window.activeTextEditor.document);
+	}
+
+	context.subscriptions.push(
+		vscode.workspace.onDidChangeTextDocument(event => {
+			updateDiagnostics(event.document);
+		})
+	);
+
+	context.subscriptions.push(
+		vscode.workspace.onDidOpenTextDocument(document => {
+			updateDiagnostics(document);
+		})
+	);
 }
 
 interface IParsedToken {
@@ -72,7 +121,7 @@ class DocumentSemanticTokensProvider implements vscode.DocumentSemanticTokensPro
 		let semanticMap = new Map<string, string>();
 		try {
 			const stmts = new Parser(tokens).parse();
-			semanticMap = new Resolver().resolve(stmts);
+			semanticMap = new TokenResolver().resolve(stmts);
 		} catch {
 			// si el código tiene errores de parseo, usamos solo el scanner
 			// pero aplicamos una heurística mínima para no perder color semántico:
@@ -123,6 +172,17 @@ function toIParsedToken(token: Token, semanticMap: Map<string, string>): IParsed
 		tokenType: semanticType ?? tokenTypeToVSCode(token.tokenType),
 		tokenModifiers: []
 	};
+}
+
+function toDiagnostic(error: ResolverDiagnostic | { token: Token; message: string }): vscode.Diagnostic {
+	const range = new vscode.Range(
+		error.token.line - 1,
+		error.token.column - 1,
+		error.token.line - 1,
+		error.token.column - 1 + Math.max(1, error.token.lexeme.length)
+	);
+
+	return new vscode.Diagnostic(range, error.message, vscode.DiagnosticSeverity.Error);
 }
 
 function tokenTypeToVSCode(type: TokenType): string {
