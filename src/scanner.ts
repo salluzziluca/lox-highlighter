@@ -3,12 +3,12 @@ import { Token, TokenKeywords, TokenType } from './tokens';
 export class Scanner {
 	private source: string;
 	private tokens: Token[] = [];
-	private start: number = 0;
-	private current: number = 0;
-	private line: number = 1;
-	private column: number = 1;
-	private startLine: number = 1;
-	private startColumn: number = 1;
+	private start = 0;
+	private current = 0;
+	private line = 1;
+	private column = 1;
+	private startLine = 1;
+	private startColumn = 1;
 
 	constructor(source: string) {
 		this.source = source;

@@ -4,7 +4,7 @@ import { Expr, Stmt } from './ast';
 
 export class Parser {
 	private tokens: Token[];
-	private current: number = 0;
+	private current = 0;
 
 	constructor(tokens: Token[]) {
 		this.tokens = tokens;
@@ -44,7 +44,9 @@ export class Parser {
 	}
 
 	private _check(type: TokenType): boolean {
-		if (this._isAtEnd()) return false;
+		if (this._isAtEnd()) {
+			return false;
+		}
 		return this._peek().tokenType === type;
 	}
 
@@ -59,13 +61,14 @@ export class Parser {
 	}
 
 	private _consume(type: TokenType, message: string): Token {
-		if (this._check(type)) return this._advance();
+		if (this._check(type)) {
+			return this._advance();
+		}
 
-		if (
-			type === TokenType.SEMICOLON ||
-			type === TokenType.RIGHT_PAREN ||
-			type === TokenType.RIGHT_BRACE
-		) {
+		// For missing tokens we choose where to point the error:
+		// - For `;` and `)` it's more helpful to point at the previous token
+		// - For `}` (missing block close) point at the current token (peek/EOF)
+		if (type === TokenType.SEMICOLON || type === TokenType.RIGHT_PAREN) {
 			throw new ParseError(this._previous(), message);
 		}
 
@@ -73,9 +76,15 @@ export class Parser {
 	}
 
 	private _primary(): Expr {
-		if (this._match(TokenType.FALSE)) return { kind: 'Literal', value: false };
-		if (this._match(TokenType.TRUE)) return { kind: 'Literal', value: true };
-		if (this._match(TokenType.NIL)) return { kind: 'Literal', value: null };
+		if (this._match(TokenType.FALSE)) {
+			return { kind: 'Literal', value: false };
+		}
+		if (this._match(TokenType.TRUE)) {
+			return { kind: 'Literal', value: true };
+		}
+		if (this._match(TokenType.NIL)) {
+			return { kind: 'Literal', value: null };
+		}
 
 		if (this._match(TokenType.NUMBER, TokenType.STRING)) {
 			return { kind: 'Literal', value: this._previous().literal as number | string };
@@ -173,14 +182,30 @@ export class Parser {
 	}
 
 	private _statement(): Stmt {
-		if (this._match(TokenType.VAR)) return this._varDecl();
-		if (this._match(TokenType.PRINT)) return this._printStmt();
-		if (this._match(TokenType.IF)) return this._ifStmt();
-		if (this._match(TokenType.WHILE)) return this._whileStmt();
-		if (this._match(TokenType.FOR)) return this._forStmt();
-		if (this._match(TokenType.FUN)) return this._funDecl();
-		if (this._match(TokenType.RETURN)) return this._returnStmt();
-		if (this._match(TokenType.LEFT_BRACE)) return this._block();
+		if (this._match(TokenType.VAR)) {
+			return this._varDecl();
+		}
+		if (this._match(TokenType.PRINT)) {
+			return this._printStmt();
+		}
+		if (this._match(TokenType.IF)) {
+			return this._ifStmt();
+		}
+		if (this._match(TokenType.WHILE)) {
+			return this._whileStmt();
+		}
+		if (this._match(TokenType.FOR)) {
+			return this._forStmt();
+		}
+		if (this._match(TokenType.FUN)) {
+			return this._funDecl();
+		}
+		if (this._match(TokenType.RETURN)) {
+			return this._returnStmt();
+		}
+		if (this._match(TokenType.LEFT_BRACE)) {
+			return this._block();
+		}
 		return this._expressionStmt();
 	}
 
@@ -243,7 +268,7 @@ export class Parser {
 	private _forStmt(): Stmt {
 		this._consume(TokenType.LEFT_PAREN, "Se esperaba '(' después de 'for'");
 
-		let initializer: Stmt | null = null;
+		let initializer: Stmt | null;
 		if (this._match(TokenType.SEMICOLON)) {
 			initializer = null;
 		} else if (this._match(TokenType.VAR)) {
