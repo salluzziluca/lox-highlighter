@@ -31,9 +31,8 @@ print noDefinida;
 // 6) Leer una variable en su propio inicializador
 var propia = propia;
 
-// --------------------------------------------------
+
 // Errores de parser para probar de a uno
-// --------------------------------------------------
 
 // Se esperaba ';' después de la declaración
 // var faltaPuntoYComa = 1
@@ -46,9 +45,6 @@ var propia = propia;
 //   print duplicada;
 // }
 
-// Se esperaba '}' al final del bloque
-// fun bloqueSinCerrar() {
-//   print 1;
 
 // Destino de asignación inválido
 // 3 = 5;
