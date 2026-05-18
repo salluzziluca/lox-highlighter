@@ -1,24 +1,57 @@
-// ============================================
-// Archivo con errores para probar diagnostics
-// ============================================
+// Archivo de prueba para diagnostics
+//
+// Casos activos: errores semánticos que la extensión debería mostrar todos juntos.
+// Casos comentados: errores de parser. Descomentá uno por vez para probarlos,
+// porque un ParseError corta el análisis y VS Code solo mostrará ese error.
 
-// Error 1: falta semicolon después de variable
-var x
+// 1) Variable redeclarada en el mismo scope
+var duplicada = 1;
+var duplicada = 2;
 
-// Error 2: unterminated string
-var name = "John
-
-// Error 3: unclosed brace
-fun add(a, b) {
-  return a + b
-
-// Error 4: missing closing paren
-if (x > 5 {
-  print x;
+// 2) Función redeclarada en el mismo scope
+fun repetida() {
+  return 1;
 }
 
-// Error 5: invalid assignment
-3 = 5;
+fun repetida() {
+  return 2;
+}
 
-// Error 6: unterminated comment
-/* Este es un comentario sin cerrar
+// 3) Parámetro redeclarado en la misma función
+fun conParametrosRepetidos(a, b, a) {
+  return a + b;
+}
+
+// 4) return fuera de una función
+return 123;
+
+// 5) Variable no definida
+print noDefinida;
+
+// 6) Leer una variable en su propio inicializador
+var propia = propia;
+
+// --------------------------------------------------
+// Errores de parser para probar de a uno
+// --------------------------------------------------
+
+// Se esperaba ';' después de la declaración
+// var faltaPuntoYComa = 1
+
+// Se esperaba una expresión
+// print ;
+
+// Se esperaba ')' después de la condición
+// if (duplicada > 0 {
+//   print duplicada;
+// }
+
+// Se esperaba '}' al final del bloque
+// fun bloqueSinCerrar() {
+//   print 1;
+
+// Destino de asignación inválido
+// 3 = 5;
+
+// Se esperaba ')' después de los argumentos
+// print llamadaSinCerrar(1, 2;
