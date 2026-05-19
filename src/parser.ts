@@ -1,6 +1,6 @@
 
 import { Token, TokenType } from './tokens';
-import { Expr, Stmt } from './ast';
+import { Block, Expr, Stmt } from './ast';
 
 export class Parser {
 	private tokens: Token[];
@@ -318,14 +318,9 @@ export class Parser {
 
 		this._consume(TokenType.RIGHT_PAREN, "Se esperaba ')' después de los parámetros");
 		this._consume(TokenType.LEFT_BRACE, "Se esperaba '{' antes del cuerpo de la función");
+		const bodyBlock = this._block() as Block;
 
-		const body: Stmt[] = [];
-		while (!this._check(TokenType.RIGHT_BRACE) && !this._isAtEnd()) {
-			body.push(this._statement());
-		}
-		this._consume(TokenType.RIGHT_BRACE, "Se esperaba '}' al final del cuerpo");
-
-		return { kind: 'FunDecl', name, params, body };
+		return { kind: 'FunDecl', name, params, body: bodyBlock.statements };
 	}
 
 	private _returnStmt(): Stmt {

@@ -4,6 +4,7 @@ import { Token, TokenType } from './tokens';
 import { Parser, ParseError } from './parser';
 import { Resolver as TokenResolver } from './resolver';
 import { SemanticResolver, ResolverDiagnostic } from './semantic-resolver';
+import { UsageDiagnostic, UsageResolver } from './usage-resolver';
 const tokenTypes = new Map<string, number>();
 const tokenModifiers = new Map<string, number>();
 
@@ -43,9 +44,14 @@ export function activate(context: vscode.ExtensionContext) {
 			const tokens = new Scanner(document.getText()).scan();
 			const stmts = new Parser(tokens).parse();
 			const semanticErrors = new SemanticResolver().resolve(stmts);
+			const usageDiagnostics = new UsageResolver().resolve(stmts);
 
 			for (const semanticError of semanticErrors) {
 				diagnostics.push(toDiagnostic(semanticError));
+			}
+
+			for (const usageDiagnostic of usageDiagnostics) {
+				diagnostics.push(toUnnecessaryDiagnostic(document, usageDiagnostic));
 			}
 		} catch (error) {
 			if (error instanceof ParseError) {
@@ -183,6 +189,28 @@ function toDiagnostic(error: ResolverDiagnostic | { token: Token; message: strin
 	);
 
 	return new vscode.Diagnostic(range, error.message, vscode.DiagnosticSeverity.Error);
+}
+
+function toUnnecessaryDiagnostic(document: vscode.TextDocument, diagnostic: UsageDiagnostic): vscode.Diagnostic {
+	let range: vscode.Range;
+
+	if (diagnostic.kind === 'unreachable') {
+		const startLine = diagnostic.start.line - 1;
+		const endLine = diagnostic.end.line - 1;
+		const endLineText = document.lineAt(endLine).text;
+		range = new vscode.Range(startLine, 0, endLine, endLineText.length);
+	} else {
+		range = new vscode.Range(
+			diagnostic.start.line - 1,
+			diagnostic.start.column - 1,
+			diagnostic.end.line - 1,
+			diagnostic.end.column - 1 + Math.max(1, diagnostic.end.lexeme.length)
+		);
+	}
+
+	const vscodeDiagnostic = new vscode.Diagnostic(range, diagnostic.message, vscode.DiagnosticSeverity.Hint);
+	vscodeDiagnostic.tags = [vscode.DiagnosticTag.Unnecessary];
+	return vscodeDiagnostic;
 }
 
 function tokenTypeToVSCode(type: TokenType): string {

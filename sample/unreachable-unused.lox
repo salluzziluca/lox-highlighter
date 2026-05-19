@@ -1,0 +1,19 @@
+fun sumar(a, b) {
+	return a + b;
+	print a; // inalcanzable
+}
+
+fun nuncaUsada(x) {
+	return x;
+}
+
+var usada = 1;
+print usada;
+
+var nuncaUsadaVar = 2;
+
+fun main() {
+	var local = 3;
+	return;
+	print local; // inalcanzable
+}
