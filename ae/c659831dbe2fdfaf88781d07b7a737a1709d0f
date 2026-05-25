@@ -1,0 +1,28 @@
+README.md
+  h_a97313da363eeb 83-88
+  s_398b64893fe0e6::t_275c478a0dec74 25-26
+  s_398b64893fe0e6::t_8248a98695a559 15-20
+  s_398b64893fe0e6::t_6f4b2ef02f3213 29-35
+  s_398b64893fe0e6::t_d334ed8dd6951b 49-66,71-80
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.1",
+  "base_commit_sha": "aec659831dbe2fdfaf88781d07b7a737a1709d0f",
+  "prompts": {},
+  "humans": {
+    "h_a97313da363eeb": {
+      "author": "Luca Salluzzi <luca.salluzzi@mercadolibre.com>"
+    }
+  },
+  "sessions": {
+    "s_398b64893fe0e6": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "24735e52-9a8b-4c0f-af35-51bb0c6fb95c",
+        "model": "claude-sonnet-4-6"
+      },
+      "human_author": "Luca Salluzzi <luca.salluzzi@mercadolibre.com>"
+    }
+  }
+}
