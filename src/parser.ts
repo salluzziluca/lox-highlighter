@@ -176,8 +176,28 @@ export class Parser {
 		return this._assignment();
 	}
 
+	private _or(): Expr {
+		let left = this._and();
+		while (this._match(TokenType.OR)) {
+			const operator = this._previous();
+			const right = this._and();
+			left = { kind: 'Binary', left, operator, right };
+		}
+		return left;
+	}
+
+	private _and(): Expr {
+		let left = this._equality();
+		while (this._match(TokenType.AND)) {
+			const operator = this._previous();
+			const right = this._equality();
+			left = { kind: 'Binary', left, operator, right };
+		}
+		return left;
+	}
+
 	private _assignment(): Expr {
-		const expr = this._equality();
+		const expr = this._or();
 
 		if (this._match(TokenType.EQUAL)) {
 			const value = this._assignment(); // recursivo para asociatividad derecha
@@ -243,6 +263,7 @@ export class Parser {
 		this._consume(TokenType.RIGHT_PAREN, "Se esperaba ')' después de la condición");
 
 		const thenBranch = this._statement();
+		while (this._match(TokenType.COMMENT)) {}
 		const elseBranch = this._match(TokenType.ELSE) ? this._statement() : null;
 
 		return { kind: 'IfStmt', condition, thenBranch, elseBranch };

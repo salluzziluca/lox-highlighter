@@ -160,7 +160,7 @@ export class SemanticResolver {
 
 	private _declare(token: Token, duplicateMessage: string): void {
 		const scope = this._currentScope();
-		if (scope.has(token.lexeme)) {
+		if (scope.has(token.lexeme) && this.scopes.length > 1) {
 			this._error(token, duplicateMessage);
 		}
 		scope.set(token.lexeme, false);
