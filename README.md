@@ -24,6 +24,12 @@ A diferencia de la mayoría de las extensiones de highlighting que usan expresio
 
 Luego de la aplicación de colores, para la detección de errores se realiza un análisis en dos etapas. El SemanticResolver recorre el AST con un stack de scopes para detectar problemas de variables y funciones. El UsageResolver hace un segundo pasaje para marcar código inalcanzable y símbolos declarados pero nunca usados.
 
+## Demo
+
+En este video se puede ver una breve demo del programa.
+
+https://youtube.com/shorts/V2XdSaHqMpA?feature=share
+
 ## Instalación
 
 La forma más rápida es descargar el archivo `lox-highlighter-0.0.1.vsix` e instalarlo con:
@@ -79,12 +85,6 @@ src/
   extension.ts          — punto de entrada, registra el provider con VSCode
 real-tests/             — casos de prueba de integración
 ```
-
-## Demo
-
-En este video se puede ver una breve demo del programa.
-
-https://youtube.com/shorts/V2XdSaHqMpA?feature=share
 
 ## Contexto
 
