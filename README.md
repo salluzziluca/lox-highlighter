@@ -30,6 +30,18 @@ En este video se puede ver una breve demo del programa.
 
 https://youtube.com/shorts/V2XdSaHqMpA?feature=share
 
+## Qué código vale la pena revisar
+
+El punto de entrada más claro para entender el proyecto es `src/extension.ts`, que muestra cómo se conecta el pipeline con VSCode. A partir de ahí el flujo es lineal.
+
+`src/scanner.ts` implementa el lexer clásico: recorre el texto carácter a carácter y produce una lista de tokens con tipo, lexema y posición. Es el primer estadio del pipeline y el más directo de seguir.
+
+`src/parser.ts` es donde está la mayor densidad técnica. Implementa un parser de descenso recursivo con la jerarquía de precedencia completa de Lox: desde `primary` hasta `assignment`, pasando por `unary`, `factor`, `term`, `comparison`, `equality`, `and` y `or`. Cada nivel de precedencia es un método. También está el AST que construye, definido en `src/ast.ts` como una unión discriminada de nodos.
+
+`src/semantic-resolver.ts` hace el análisis de scopes con un stack de Maps, uno por cada bloque abierto. Ahí se detectan los errores de variables y funciones sin necesidad de ejecutar el programa.
+
+`src/usage-resolver.ts` es el más interesante en términos de análisis estático. Hace un segundo pasaje sobre el AST para detectar código inalcanzable (análisis de flujo) y símbolos declarados pero nunca usados (análisis de liveness). Es lo que más va más allá del TP base.
+
 ## Instalación
 
 La forma más rápida es descargar el archivo `lox-highlighter-0.0.1.vsix` e instalarlo con:
