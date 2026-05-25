@@ -157,15 +157,6 @@ class DocumentSemanticTokensProvider implements vscode.DocumentSemanticTokensPro
 			.map(t => toIParsedToken(t, semanticMap));
 	}
 
-
-	private _parseTextToken(text: string): { tokenType: string; tokenModifiers: string[]; } {
-		const parts = text.split('.');
-		return {
-			tokenType: parts[0],
-			tokenModifiers: parts.slice(1)
-		};
-	}
-
 }
 
 
