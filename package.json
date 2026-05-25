@@ -4,6 +4,11 @@
   "description": "Semantic highlighting for Lox",
   "version": "0.0.1",
   "publisher": "cpiccin",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/salluzziluca/lox-highlighter"
+  },
+  "license": "MIT",
   "engines": {
     "vscode": "^1.90.0"
   },
