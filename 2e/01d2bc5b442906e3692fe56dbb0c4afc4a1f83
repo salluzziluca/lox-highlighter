@@ -1,0 +1,55 @@
+out/usage-resolver.js
+  ai_agent 1-244
+out/test/scanner.test.js
+  ai_agent 1-262
+out/semantic-resolver.js
+  ai_agent 1-156
+out/usage-resolver.js.map
+  ai_agent 1
+out/cli.js
+  ai_agent 1-78
+out/test/parser.test.js.map
+  ai_agent 1
+out/parser.js.map
+  ai_agent 1
+out/test/resolver.test.js
+  ai_agent 1-141
+out/test/scanner.test.js.map
+  ai_agent 1
+out/tokens.js
+  ai_agent 1-79
+out/ast.js.map
+  ai_agent 1
+out/extension.js
+  ai_agent 1-182
+out/ast.js
+  ai_agent 1-3
+out/semantic-resolver.js.map
+  ai_agent 1
+out/test/parser.test.js
+  ai_agent 1-531
+out/resolver.js
+  ai_agent 1-93
+out/scanner.js.map
+  ai_agent 1
+out/parser.js
+  ai_agent 1-300
+out/test/resolver.test.js.map
+  ai_agent 1
+out/tokens.js.map
+  ai_agent 1
+out/cli.js.map
+  ai_agent 1
+out/scanner.js
+  ai_agent 1-211
+out/resolver.js.map
+  ai_agent 1
+out/extension.js.map
+  ai_agent 1
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.1",
+  "base_commit_sha": "2e01d2bc5b442906e3692fe56dbb0c4afc4a1f83",
+  "prompts": {}
+}
