@@ -2,7 +2,7 @@
   "name": "lox-highlighter",
   "displayName": "Lox Highlighter",
   "description": "Semantic highlighting for Lox",
-  "version": "0.0.1",
+  "version": "1.1.0",
   "publisher": "cpiccin",
   "repository": {
     "type": "git",
