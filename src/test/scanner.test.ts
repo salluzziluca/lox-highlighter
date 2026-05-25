@@ -51,12 +51,12 @@ suite('Scanner', () => {
 	// ─── comentarios ───────────────────────────────────────────────────────────
 
 	suite('comentarios', () => {
-		test('comentario descarta el resto de la línea', () => {
-			assert.deepStrictEqual(types('// esto es un comentario'), []);
+		test('comentario emite token COMMENT', () => {
+			assert.deepStrictEqual(types('// esto es un comentario'), [TokenType.COMMENT]);
 		});
 
 		test('comentario no afecta la línea siguiente', () => {
-			assert.deepStrictEqual(types('// comentario\nvar'), [TokenType.VAR]);
+			assert.deepStrictEqual(types('// comentario\nvar'), [TokenType.COMMENT, TokenType.VAR]);
 		});
 
 		test('slash solo no es comentario', () => {
@@ -315,7 +315,7 @@ suite('Scanner', () => {
 		});
 
 		test('solo comentarios', () => {
-			assert.deepStrictEqual(scan('// todo comentario\n// otra línea'), []);
+			assert.deepStrictEqual(types('// todo comentario\n// otra línea'), [TokenType.COMMENT, TokenType.COMMENT]);
 		});
 
 		test('carácter desconocido no explota', () => {
