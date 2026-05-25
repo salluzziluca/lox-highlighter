@@ -44,7 +44,13 @@ El punto de entrada más claro para entender el proyecto es `src/extension.ts`, 
 
 ## Instalación
 
-La forma más rápida es descargar el archivo `lox-highlighter-0.0.1.vsix` e instalarlo con:
+La forma más rápida es obtener el archivo `lox-highlighter-0.0.1.vsix` desde la [release](https://github.com/salluzziluca/lox-highlighter/releases) o generarlo localmente con:
+
+```bash
+npx --registry https://registry.npmjs.org @vscode/vsce package
+```
+
+E instalarlo con:
 
 ```bash
 code --install-extension lox-highlighter-0.0.1.vsix
