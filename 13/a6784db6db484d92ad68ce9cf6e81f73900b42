@@ -1,0 +1,22 @@
+src/parser.ts
+  s_398b64893fe0e6::t_4c68d2fdf0aab9 179-198,200
+  s_398b64893fe0e6::t_2a7cda51d875c1 266
+src/semantic-resolver.ts
+  s_398b64893fe0e6::t_3064ad793e29c8 163
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.1",
+  "base_commit_sha": "13a6784db6db484d92ad68ce9cf6e81f73900b42",
+  "prompts": {},
+  "sessions": {
+    "s_398b64893fe0e6": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "24735e52-9a8b-4c0f-af35-51bb0c6fb95c",
+        "model": "claude-sonnet-4-6"
+      },
+      "human_author": "Luca Salluzzi <luca.salluzzi@mercadolibre.com>"
+    }
+  }
+}
