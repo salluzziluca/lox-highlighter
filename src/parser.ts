@@ -6,6 +6,17 @@ export class Parser {
 	private tokens: Token[];
 	private current = 0;
 
+	private readonly _stmtHandlers: Partial<Record<TokenType, () => Stmt>> = {
+		[TokenType.VAR]: () => this._varDecl(),
+		[TokenType.PRINT]: () => this._printStmt(),
+		[TokenType.IF]: () => this._ifStmt(),
+		[TokenType.WHILE]: () => this._whileStmt(),
+		[TokenType.FOR]: () => this._forStmt(),
+		[TokenType.FUN]: () => this._funDecl(),
+		[TokenType.RETURN]: () => this._returnStmt(),
+		[TokenType.LEFT_BRACE]: () => this._block(),
+	};
+
 	constructor(tokens: Token[]) {
 		this.tokens = tokens;
 	}
@@ -182,29 +193,10 @@ export class Parser {
 	}
 
 	private _statement(): Stmt {
-		if (this._match(TokenType.VAR)) {
-			return this._varDecl();
-		}
-		if (this._match(TokenType.PRINT)) {
-			return this._printStmt();
-		}
-		if (this._match(TokenType.IF)) {
-			return this._ifStmt();
-		}
-		if (this._match(TokenType.WHILE)) {
-			return this._whileStmt();
-		}
-		if (this._match(TokenType.FOR)) {
-			return this._forStmt();
-		}
-		if (this._match(TokenType.FUN)) {
-			return this._funDecl();
-		}
-		if (this._match(TokenType.RETURN)) {
-			return this._returnStmt();
-		}
-		if (this._match(TokenType.LEFT_BRACE)) {
-			return this._block();
+		const handler = this._stmtHandlers[this._peek().tokenType];
+		if (handler) {
+			this._advance();
+			return handler();
 		}
 		return this._expressionStmt();
 	}
